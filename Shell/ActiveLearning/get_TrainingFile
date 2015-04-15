@@ -1,0 +1,53 @@
+#!/bin/bash 
+## Sample Command 
+## ./get_TrainingFile /media/sf_Project/ActiveLearning/TestingReport/20130730_FaceRecognition/Source/FAM3_Training_10.txt  /media/sf_Project/ActiveLearning/TestingReport/20130730_FaceRecognition/Source/Family-003/  FAM3_Training
+
+#each 10 face training file 
+Train_10=$1
+#Source Path for Image 
+Source_Path=$2
+# File Sample .. Example: FAM3_Training_
+File_Sample=$3
+
+Working_Path=$2"Train_Set/Target"
+
+
+for (( i=1;i<10;i++))
+do 
+    Folder_Name="Each_"`printf "%02d\n" $i`    
+    Target_Path=$Working_Path"/"$Folder_Name    
+    `find $Target_Path -name *.jpg > /tmp/$Folder_Name.txt`
+    
+    File_List="/tmp/$File_Sample-$Folder_Name.txt"
+            
+    cat /dev/null > $File_List
+    while read line 
+    do
+        r=$line
+        correct=${r##*/}
+        echo $correct >> $File_List
+    done < "/tmp/$Folder_Name.txt"
+
+    ## Start to write the training file for each face sample 
+    Target_Name=$Source_Path"/"$File_Sample"_"`printf "%02d\n" $i`".txt"
+    cat /dev/null > $Target_Name
+    while read line 
+    do 
+        echo $line >> $Target_Name
+        N_jpg=`grep -n $line $Train_10 | cut -d ':' -f 1` 
+        N_count=$(($N_jpg+1))
+        
+        ## sed -n '52p'
+        ## sed '52!d'
+        ## sed '52q;d'
+
+        Value_count=`sed $N_count'q;d' $Train_10`
+        echo $Value_count >> $Target_Name
+        for ((j=1;j<=$Value_count;j++))
+        do 
+            N_position=$(($N_count+$j))
+            Value_position=`sed $N_position'q;d' $Train_10`
+            echo $Value_position >> $Target_Name
+        done 
+    done < "$File_List"
+done

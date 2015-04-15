@@ -1,0 +1,12 @@
+#!/bin/bash 
+
+path=$1 
+
+`find $path -name *.jpg > /tmp/abc` 
+
+while read line 
+do 
+    r=$line 
+    correct=${r##*/}
+    echo $correct
+done < "/tmp/abc"

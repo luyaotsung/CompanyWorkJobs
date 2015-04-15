@@ -1,0 +1,22 @@
+#!/bin/bash 
+
+Count_H=$1 
+Count_W=$2
+Image_Src=$3
+CMD_convert=`which convert`
+Image_Target="$1x$2.jpg"
+
+
+
+cp "-Rvpf" $Image_Src $Image_Target 
+
+for ((i=1;i<=$Count_W;i++))
+do 
+    $CMD_convert "+append" $Image_Src $Image_Target $Image_Target  
+done 
+
+
+for ((i=1;i<=$Count_H;i++))
+do 
+    $CMD_convert "-append" $Image_Target $Image_Target $Image_Target  
+done 

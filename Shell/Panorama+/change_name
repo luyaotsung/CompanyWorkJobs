@@ -1,0 +1,59 @@
+#!/bin/bash 
+
+Target_Path=$1
+Source_Path=$1"Source"
+Result_Path=$1"Result"
+#Out_List=(17 18)
+Out_List=(  )
+
+Prefix=$2
+
+echo "Target Path ==> "$Target_Path
+echo "Source Path ==> "$Source_Path 
+echo "Result Path ==> "$Result_Path
+
+if [ ! -d $Result_Path ]
+then 
+	echo "There is no Result Folder ! Create a new one "
+	mkdir  $Result_Path
+else 
+	echo "Result folder is existed ! Delete it and create a new one "
+	rm -rf $Result_Path
+	mkdir  $Result_Path
+fi 
+
+Dir_List=`ls -l $Source_Path | egrep '^d' | awk '{print $9}'`
+File_List=`ls -l $Source_Path | egrep '^-' | awk '{print $9}'`
+
+dir_index=1
+for dir_name in $Dir_List 
+do 
+	cd $Source_Path
+	Real_File_Name=$Prefix"_"`printf "%03d\n" $dir_index`
+	tar -zcvf $Real_File_Name".tgz" $dir_name > /dev/null  2>&1 
+	mv  $Real_File_Name".tgz" $Result_Path
+	dir_index=$((dir_index+1))
+	for out_number in ${Out_List[@]} 
+	do 	
+		if [ $out_number == $dir_index ]
+		then 
+			dir_index=$((dir_index+1))
+		fi 
+	done
+done
+
+file_index=1
+for file_name in $File_List 
+do 
+	cd $Source_Path
+	Real_File_Name=$Prefix"_"`printf "%03d\n" $file_index`
+	cp  $file_name $Result_Path/$Real_File_Name.jpg
+	file_index=$((file_index+1))
+	for out_number in ${Out_List[@]} 
+	do 	
+		if [ $out_number == $file_index ]
+		then 
+			file_index=$((file_index+1))
+		fi 
+	done
+done

@@ -1,0 +1,88 @@
+#!/bin/bash 
+
+
+## $1 working path 
+Target_Path=$1
+CMD_convert=`which convert`
+CMD_identify=`which identify`
+CMD_cut=`which cut`
+CMD_rm=`which rm`
+Log_path="/home/Script/Report/"
+Now_date=`date +"%Y-%m-%d_%H-%M"`
+File_delete=$Log_path"delete_"$Now_date
+File_resize=$Log_path"resize_"$Now_date
+File_stay=$Log_path"stay_"$Now_date
+
+Min_pixel=3800000
+Max_pixel=4200000
+Target_pixel=4000000
+
+do_find()
+{
+    local path=$1
+    local level=$2
+    local resolution=""
+    local height=""
+    local width=""
+    local tab_string=""
+
+    local Folder_List=`ls -l $path | egrep '^d' | awk '{print $9}'`
+    local File_List=`ls -l $path | egrep '^-' | awk '{print $9}'`
+
+
+    for ((i=0;i<=$level;i++))
+    do
+        tab_string=$tab_string"."
+    done
+
+    level=$(($level+1))
+    for sub_dir in $Folder_List
+    do
+        do_find "$path/$sub_dir" $level
+    done
+
+    echo -e $tab_string"d $path"
+    for sub_file in $File_List
+    do 
+
+        real_file=$path"/"$sub_file
+
+        Ext_name=`echo $sub_file | awk -F . '{print $NF}' `
+        if [ $Ext_name = "JPG" ] || [ $Ext_name = "jpg" ] || [ $Ext_name = "BMP" ] || [ $Ext_name = "bmp" ] || [ $Ext_name = "PNG" ] || [ $Ext_name = "png" ] || [ $Ext_name = "GIF" ] || [ $Ext_name = "gif" ]
+        then 
+            resolution=`$CMD_identify $real_file | awk '{print $3}'`
+            width=`echo $resolution | $CMD_cut -d "x" -f 1`
+            height=`echo $resolution | $CMD_cut -d "x" -f 2`
+            pixel=$(($width*$height))
+
+            Resize_rate=`awk 'BEGIN{printf "%.2f\n",('$Target_pixel/$pixel')}'`
+            Resize_rate=`echo "scale=5;(sqrt ($Resize_rate))*100" | bc `
+        
+            if [ $pixel -gt $Max_pixel ]
+            then
+                Correct_CMD="Resize"
+                $CMD_convert $real_file "-resize" $Resize_rate"%" $real_file 
+                echo "$real_file $pixel $Correct_CMD $Resize_rate" >> $File_resize 2>&1
+            elif [ $pixel -lt $Min_pixel ]
+            then
+                Correct_CMD="Delete"
+                $CMD_rm "-rf" $real_file
+                echo "$real_file $pixel $Correct_CMD $Resize_rate" >> $File_delete 2>&1
+            else 
+                Correct_CMD="Stay"
+                echo "$real_file  $pixel $Correct_CMD $Resize_rate" >> $File_stay 2>&1
+            fi 
+        fi
+            ## Mark by debug 
+         echo -e $tab_string" - $sub_file $pixel $Correct_CMD $Resize_rate"
+        
+    done 
+}
+
+echo "Start Path = $Target_Path"
+
+echo "" > $File_resize 2>&1 
+echo "" > $File_delete 2>&1 
+echo "" > $File_stay 2>&1 
+
+do_find $Target_Path 0 

@@ -1,0 +1,74 @@
+#!/bin/bash 
+
+Target_Path=$1
+Source_Path=$1"Source"
+Result_Path=$1"Result"
+#Out_List=(17 18)
+Out_List=(  )
+
+Prefix=$2
+
+echo "Target Path ==> "$Target_Path
+echo "Source Path ==> "$Source_Path 
+echo "Result Path ==> "$Result_Path
+
+if [ ! -d $Result_Path ]
+then 
+	echo "There is no Result Folder ! Create a new one "
+	mkdir  $Result_Path
+else 
+	echo "Result folder is existed ! Delete it and create a new one "
+	rm -rf $Result_Path
+	mkdir  $Result_Path
+fi 
+
+File_List=`ls -l $Source_Path | egrep '^-' | awk '{print $9}'`
+
+file_index=1
+file_sub_index=1
+tar_name=" "
+for file_name in $File_List 
+do 
+   
+    tar_name=$tar_name" "$file_name
+    cd $Source_Path
+
+
+    Ext_name=`echo $file_name | awk -F . '{print $NF}' `        
+
+    if [ $Ext_name = "jpg" ]
+    then 
+
+
+        for out_number in ${Out_List[@]}
+        do
+            if [ $out_number == $file_index ]
+            then
+                file_index=$((file_index+1))
+            fi
+        done
+
+        ## do JPG file 
+        Real_File_Name=$Prefix"_"`printf "%03d\n" $file_index`
+        cp  $file_name $Result_Path/$Real_File_Name.jpg
+    fi 
+
+    if [ $file_sub_index = "3" ]
+    then
+        ## Do Debug Files 
+        Real_Tar_Name=$Prefix"_"`printf "%03d\n" $file_index`
+        tar -zcvf $Real_Tar_Name".tgz" $tar_name > /dev/null  2>&1
+        mv $Real_Tar_Name".tgz" $Result_Path 
+
+        echo "File Index ==> "$file_index
+        echo "File Sub Index ==> "$file_sub_index 
+        echo "Tar Name "$tar_name
+
+
+        file_sub_index=1
+        file_index=$((file_index+1))
+        tar_name=" "
+    else 
+        file_sub_index=$(($file_sub_index+1))
+    fi 
+done

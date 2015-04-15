@@ -1,0 +1,13 @@
+#!/bin/bash 
+
+
+Source_Path=$1
+Target_Path=$2
+
+Folder_List=`ls -l $Source_Path | egrep '^d' | awk '{print $9}'`
+
+for folder_name in $Folder_List 
+do 
+    mkdir -p $Target_Path"/"$folder_name
+done 
+

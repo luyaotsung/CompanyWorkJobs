@@ -1,0 +1,48 @@
+#!/bin/bash 
+
+## $1 working path 
+Target_Path=$1
+CMD_convert=`which convert`
+CMD_identify=`which identify`
+CMD_cut=`which cut`
+CMD_rm=`which rm`
+
+do_find()
+{
+    local path=$1
+    local level=$2
+    local resolution=""
+    local height=""
+    local width=""
+    local Folder_List=`ls -l $path | egrep '^d' | awk '{print $9}'`
+    local File_List=`ls -l $path | egrep '^-' | awk '{print $9}'`
+
+    level=$(($level+1))
+    for sub_dir in $Folder_List
+    do
+        do_find "$path/$sub_dir" $level
+    done
+    for sub_file in $File_List
+    do 
+        real_file=$path"/"$sub_file
+        Ext_name=`echo $sub_file | awk -F . '{print $NF}' `
+        if [ $Ext_name = "JPG" ] || [ $Ext_name = "jpg" ] || [ $Ext_name = "jpeg" ]
+        then 
+            resolution=`$CMD_identify $real_file | awk '{print $3}'`
+            width=`echo $resolution | $CMD_cut -d "x" -f 1`
+            height=`echo $resolution | $CMD_cut -d "x" -f 2`
+
+            if [ ! $width -gt 511 ] || [ ! $height -gt 511 ]
+            then 
+                echo "Delete [Too Samll] : $real_file " 
+                $CMD_rm "-rf" $real_file
+            fi 
+        else 
+            echo "Delete [ Wrong] : $real_file " 
+            $CMD_rm "-rf" $real_file
+        fi
+    done 
+}
+
+echo "Start Path = $Target_Path"
+do_find $Target_Path 0 

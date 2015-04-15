@@ -1,0 +1,11 @@
+Turkey_Blue-Mosque 25.033493 121.564101 N E 
+China_Tiananmen-Square  39.909045 116.397673 N E
+Taiwan_Taipei101 21.901880 120.851948 N E 
+UK_Buckingham-Palace 51.500789 0.142264 N W
+Spain-Palacio-Realde-Madrid 40.417954 3.714312 N W
+US-SpaceNeedle 47.620744 122.345896 N W
+Tibet-Potala-Palace 29.655463 91.120777 N E 
+Japan-Nijo-Castle 35.038992 135.748444 N E 
+Korea_Beomeosa-Temple 35.283918 129.069829 N E 
+Australia-Sydney_Opera_House 33.857569 151.215928 S E
+Taiwan-The-Eluanbi-ligthouse 21.902278 120.867805 N E 

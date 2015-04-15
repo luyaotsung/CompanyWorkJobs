@@ -1,0 +1,22 @@
+#!/bin/bash 
+
+
+## $1 working path 
+Target_Path=$1
+CMD_mv="/bin/mv"
+
+Folder_list=`ls -l $Target_Path | egrep '^d' | awk '{print $9}'`
+Count=""
+
+cd $Target_Path
+
+for folder_name in $Folder_list
+do 
+        Count=$(($Count+1))
+        Count_String=`printf "%03d\n" $Count`
+
+        echo "Command ==> $CMD_mv $folder_name $Count_String"
+        $CMD_mv $folder_name $Count_String
+        
+
+done 

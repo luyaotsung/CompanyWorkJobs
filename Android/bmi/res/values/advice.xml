@@ -1,0 +1,7 @@
+
+    <resources>
+        <string name="advice_light">你(妳)該多吃點了</string>
+        <string name="advice_average">你(妳)的體型很棒哦!</string>
+        <string name="advice_heavy">你(妳)該節食了哦!!</string>
+        <string name="advice_bmi_result">你(妳)的BMI 是</string>
+    </resources>

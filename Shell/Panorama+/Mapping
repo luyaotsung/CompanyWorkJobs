@@ -1,0 +1,214 @@
+#!/bin/bash
+
+echo `date`
+## In debug message E: it means trun left @@ W: it means trun right.
+P_Define=(	'1 -5 5 EW -5 5 NS'
+		'5 27 38 E -5 5 NS'
+		'13 59 69 E -5 5 NS'
+		'23 94 104 E -5 5 NS'
+		'33 124 134 E -5 5 NS'
+		'43 158 168 E -5 5 NS'
+		'3 27 38 W -5 5 NS'
+		'9 59 69 W -5 5 NS'
+		'18 94 104 W -5 5 NS'
+		'28 124 134 W -5 5 NS'
+		'38 158 168 W -5 5 NS'
+		'4 -5 5 EW 20 30 S'
+		'12 34 44 E 20 30 S'
+		'22 75 85 E 20 30 S'
+		'32 113 123 E 20 30 S'
+		'42 154 164 E 20 30 S'
+		'10 34 44 W 20 30 S'
+		'19 75 85 W 20 30 S'
+		'29 113 123 W 20 30 S'
+		'39 154 164 W 20 30 S'
+		'11 -5 5 EW 43 53 S'
+		'21 45 55 E 43 53 S'
+		'31 96 106 E 43 53 S'
+		'41 148 158 E 43 53 S'
+		'20 45 55 W 43 53 S'
+		'30 96 106 W 43 53 S'
+		'40 148 158 W 43 53 S'
+		'50 -5 5 EW 67 77 S'
+		'51 83 93 E 67 77 S'
+		'49 83 93 W 67 77 S'
+		'48 173 183 W 67 77 S'
+		'2 -5 5 EW 20 30 N'
+		'6 34 44 E 20 30 N'
+		'14 75 85 E 20 30 N'
+		'24 113 123 E 20 30 N'
+		'34 154 164 E 20 30 N'
+		'8 34 44 W 20 30 N'
+		'17 75 85 W 20 30 N'
+		'27 113 123 W 20 30 N'
+		'37 154 164 W 20 30 N'
+		'7 -5 5 EW 43 53 N'
+		'15 45 55 E 43 53 N'
+		'25 96 106 E 43 53 N'
+		'35 148 158 E 43 53 N'
+		'16 45 55 W 43 53 N'
+		'26 96 106 W 43 53 N'
+		'36 148 158 W 43 53 N'
+		'45 -5 5 EW 67 77 N'
+		'44 83 93 E 67 77 N'
+		'46 83 93 W 67 77 N'
+		'47 173 183 W 67 77 N'
+	)		
+
+Source_Path=$1
+Debug_File="orientation.txt"
+D2L=`which dos2unix`
+L2D=`which unix2dos`
+Report=`pwd`"/Report/map.txt"
+
+run_Debug=false 
+
+echo " " > $Report 
+
+
+User_List=`ls -l $Source_Path | egrep '^d' | awk '{print $9}'`
+
+for User_Name_List in $User_List 
+do
+
+	User_Name=`echo $User_Name_List | cut -d "-" -f 1`
+	User_Device=`echo $User_Name_List | cut -d "-" -f 2`
+
+	echo "$User_Name $User_Device " >> $Report 	
+
+	Dir_List=`ls -l $Source_Path$User_Name_List | egrep '^d' | awk '{print $9}'`
+	for Dir_Name in $Dir_List
+	do 
+
+		Target_Path=$Source_Path$User_Name_List"/"$Dir_Name	
+		filename=$Target_Path"/"$Debug_File
+
+		if [ -f $filename  ]
+		then 
+
+			Total_Pic=`tail -3 $filename | head -1| cut -f 1`
+			From_N=3
+			End_N=$(($From_N+$Total_Pic-1))
+			
+			if $run_Debug 
+			then 
+				echo "Target Path ==> "$Target_Path
+				echo "filename ==> "$filename
+				echo "Total Pic ==> "$Total_Pic
+				echo "From Number ==> "$From_N
+				echo "End Number ==> "$End_N
+			fi
+		
+			echo -n "* * $Dir_Name  $Total_Pic " >> $Report 
+			map=" "
+			Key_While=1
+				
+			`$D2L $filename > /dev/null 2>&1 `
+
+			exec < $filename
+			while read line 
+			do 
+
+				if [ $Key_While -ge $From_N ] && [ $Key_While -le $End_N ]
+				then 
+
+					get_Index="1"			
+
+					S_Number=`echo $line | cut -d ' ' -f 1 `
+					get_Index=$(($get_Index+1))	
+					S_Longitude=`echo $line | cut -d ' ' -f 2 `
+					get_Index=$(($get_Index+1))	
+
+					if [ `echo "$S_Longitude > -5" | bc` -eq 1 ] && [ `echo "$S_Longitude < 5" | bc` -eq 1 ]
+					then 
+						S_Longitude_ref="EW" 
+						if [ $S_Longitude == "0"  ]
+						then 
+							get_Index=$(($get_Index+1))
+						fi 
+						get_Index=$(($get_Index+1))
+					else
+						S_Longitude_ref=`echo $line | cut -d " " -f $get_Index `
+						get_Index=$(($get_Index+1))
+					fi 	
+
+					S_Latitude=`echo $line | cut -d " " -f $get_Index `
+					get_Index=$(($get_Index+1))
+					if [ `echo "$S_Latitude > -5" | bc` -eq 1 ] && [ `echo "$S_Latitude < 5" | bc` -eq 1 ]
+					then 
+						S_Latitude_ref="NS" 
+					else
+						S_Latitude_ref=`echo $line | cut -d " " -f $get_Index `
+					fi 	
+					
+
+					if $run_Debug
+					then 
+						echo "## Origianl String is ==> "$line
+						echo "   Source Number ==> "$S_Number
+						echo "   Source Longitude ==> "$S_Longitude
+						echo "   Source Longitude Ref ==> "$S_Longitude_ref
+						echo "   Source Latitude ==> "$S_Latitude
+						echo "   Source Latitude Ref ==> "$S_Latitude_ref
+					fi 
+
+					for i in "${P_Define[@]}"
+					do 
+						D_Index=`echo $i | cut -d " " -f 1`
+						D_Longitude_Min=`echo $i | cut -d " " -f 2`
+						D_Longitude_Max=`echo $i | cut -d " " -f 3`
+						D_Longitude_ref=`echo $i | cut -d " " -f 4`
+						D_Latitude_Min=`echo $i | cut -d " " -f 5`
+						D_Latitude_Max=`echo $i | cut -d " " -f 6`
+						D_Latitude_ref=`echo $i | cut -d " " -f 7`
+						
+						if $run_Debug
+						then 
+							echo "    Origianl String ==> "$i
+							echo "    Define Index ==> "$D_Index
+							echo "    Define Long Min ==> "$D_Longitude_Min
+							echo "    Define Long Max ==> "$D_Longitude_Max
+							echo "    Define Long Max ref ==> " $D_Longitude_ref
+							echo "    Define Lati Min ==> "$D_Latitude_Min
+							echo "    Define Lati Max ==> "$D_Latitude_Max
+							echo "    Define Lati Max ref ==> " $D_Latitude_ref
+						fi
+						
+						if [ `echo "$S_Longitude < $D_Longitude_Max " | bc` -eq 1 ] &&
+							[ `echo "$S_Longitude > $D_Longitude_Min " | bc` -eq 1 ] &&
+							[ $D_Longitude_ref = $S_Longitude_ref ] &&
+							[ `echo "$S_Latitude < $D_Latitude_Max " | bc` -eq 1 ] &&
+							[ `echo "$S_Latitude > $D_Latitude_Min " | bc` -eq 1 ] &&
+							[ $D_Latitude_ref = $S_Latitude_ref ] 
+						then 
+							point=$D_Index
+							break
+						fi
+					done 
+					map=$map" $point"
+					
+					
+				fi	
+				Key_While=$(($Key_While+1))
+			done 
+			if $n_Debug
+			then 
+				echo "****** Map is ==> "$map
+			fi 
+			echo  "$map" >> $Report 
+		fi
+	done 
+done
+
+
+#for i in "${P_Define[@]}" 
+#do 
+#	echo $i 
+#	Detail=($i)
+#	for j in "${Detail[@]}"
+#	do 
+#		echo $j
+#	done
+#done
+
+echo `date`
