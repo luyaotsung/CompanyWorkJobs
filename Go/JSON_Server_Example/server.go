@@ -65,7 +65,7 @@ func FileHandler(w http.ResponseWriter, req *http.Request) {
 			feedbackString = "Error !! Content of file is empty"
 		} else {
 			result, _ := base64.StdEncoding.DecodeString(rJSON.Data)
-			fileName := fmt.Sprintf("/tmp/Test/%s", rJSON.Name)
+			fileName := fmt.Sprintf("/home/eli/Templates/Test/%s", rJSON.Name)
 			fmt.Println(fileName)
 			ioutil.WriteFile(fileName, result, 0644)
 			feedbackString = "Date is current"
