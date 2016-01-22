@@ -8,7 +8,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"runtime"
 
+	"code.google.com/p/rsc/qr"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -270,11 +273,131 @@ func StringHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Println(" ")
 }
 
+type MMH_Drug_QRCode struct {
+	Hospital_ID       string  `json:"hospitalid"`
+	Prescription_Type int     `json:"prescriptiontype"`
+	Prescription_ID   string  `json:"prescriptionid"`
+	Name              string  `json:"name"`
+	ID                string  `json:"id"`
+	Birthday          string  `json:"birthday"`
+	Divisions         string  `json:"divisions"`
+	Date              string  `json:"date"`
+	Serial_Number     string  `json:"serialnumber"`
+	Durg_Day          int     `json:"drugday"`
+	Partial_Code      string  `json:"partialcode"`
+	ICD9CM_Code       string  `json:"icd9cm"`
+	Doctor_ID         string  `json:"doctorid"`
+	Comment           string  `json:"comment"`
+	Drug_ID           string  `json:"drugid"`
+	Drug_Dosage       float32 `json:"drugdosage"`
+	Drug_Frequencry   string  `json:"drugfrequency"`
+	Drug_Count        float32 `json:"drugcount"`
+}
+
+type MMH_Drug_Information struct {
+	Hospital_ID       []ID_List      `json:"hospitalid"`
+	Prescription_Type []ID_List      `json:"prescriptiontype"`
+	Prescription_ID   []ID_List      `json:"prescriptionid"`
+	Divisions         []ID_List      `json:"divisions"`
+	Partial_Code      []ID_List      `json:"partialcode"`
+	ICD9CM_Code       []ID_List      `json:"icd9cm"`
+	Doctor_ID         []ID_List      `json:"doctorid"`
+	Drug_ID           []Drug_ID_List `json:"drugid"`
+	Drug_Frequencry   []ID_List      `json:"drugfrequency"`
+}
+
+type ID_List struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	Note string `json:"note"`
+}
+
+type Drug_ID_List struct {
+}
+
+type QRCode_Example struct {
+	Data string `json:"data"`
+}
+
+func QRCodeHandler(w http.ResponseWriter, req *http.Request) {
+	//getProject := req.URL.Path[len("/Method1/"):]
+	//fmt.Println(getProject)
+	switch req.Method {
+	case "POST":
+		fmt.Println("QRCodeHandler :: POST ")
+
+		feedbackString := "Not Ready Now !!"
+		buf, _ := json.Marshal(feedbackString)
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST")
+		w.Write(buf)
+
+	case "GET":
+
+		fmt.Println("QRCodeJSON Handler :: Get ")
+
+		var bodyBytes []byte
+		if req.Body != nil {
+			bodyBytes, _ = ioutil.ReadAll(req.Body)
+		}
+		req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		bodyString := string(bodyBytes)
+		fmt.Println(bodyString)
+
+		// Decode JSON
+		var rJSON QRCode_Example
+		err := json.NewDecoder(req.Body).Decode(&rJSON)
+		if err != nil {
+			log.Printf("Error: %v \n", err)
+		}
+		// Usage : curl -H "Content-Type: application/json" -X GET -d '{"data":"1101100011;2;04;測試患者;A12****789;500101;;1041204;IC;28;A12;4280#4659#25000#7806#49300#7100#;5684;;AC339291G0;1;QHS;PO;28;AB30119100;1;QID;PO;112;BC23221100;1;QD AM;PO;28;AC444501G0;1;BID;PO;56;BC256961G0;1;QHS;PO;28;BC21571100;1;QD AM;PO;28;"}' http://10.116.136.13:22442/qrcode/abc.jpg -o cde.png
+
+		// stuff2buy := "1101100011;2;04;測試患者;A12****789;500101;;1041204;IC;28;A12;4280#4659#25000#7806#49300#7100#;5684;;AC339291G0;1;QHS;PO;28;AB30119100;1;QID;PO;112;BC23221100;1;QD AM;PO;28;AC444501G0;1;BID;PO;56;BC256961G0;1;QHS;PO;28;BC21571100;1;QD AM;PO;28;"
+		stuff2buy := rJSON.Data
+
+		code, err := qr.Encode(stuff2buy, qr.M)
+
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		// everything ok
+		fmt.Println("QR code generated")
+
+		// line := ResponseJSON{
+		// 	Method: "Client Get",
+		// 	Name:   "Only Json Response Get",
+		// }
+		// buf, err := json.Marshal(line)
+		// fmt.Println("Content of JSON: ", line)
+		// if err != nil {
+		// 	fmt.Println(err.Error())
+		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+		// }
+		w.Header().Set("Content-Type", "image/png")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST")
+		if _, err := w.Write(code.PNG()); err != nil {
+			log.Println("unable to write image.")
+		}
+		// w.Write(imgByte)
+	default:
+		w.WriteHeader(400)
+	}
+	fmt.Println(" ")
+}
+
 func main() {
+
+	// maximize CPU usage for maximum performance
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	fmt.Println("Start Server :22442  ")
 	http.HandleFunc("/string/", StringHandler)
 	http.HandleFunc("/file/", FileHandler)
+	http.HandleFunc("/qrcode/", QRCodeHandler)
 	http.ListenAndServe(":22442", nil)
 
 }
