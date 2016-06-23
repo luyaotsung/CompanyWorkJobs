@@ -5,16 +5,18 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"image/png"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"runtime"
 
-	"code.google.com/p/rsc/qr"
+	"github.com/kiktomo/goqr"
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// ResponseJSON is an unexported type
 type ResponseJSON struct {
 	Method string `json:"Method"`
 	Name   string `json:"Name"`
@@ -30,10 +32,12 @@ type ResponseJSON struct {
 //);
 // CMD : CREATE TABLE DATA(SN INTEGER PRIMARY KEY AUTOINCREMENT,NAME TEXT NOT NULL,DESCRIPTION TEXT,SIZE INTEGER NOT NULL,TYPE TEXT,DATA BLOB NOT NULL);
 
+// FileList is an unexported type
 type FileList struct {
 	List []FileUpload
 }
 
+// FileUpload is an unexported type
 type FileUpload struct {
 	SN          int    `json:"sn"`
 	Name        string `json:"filename"`
@@ -43,6 +47,7 @@ type FileUpload struct {
 	Size        int    `json:"filesize"`
 }
 
+// HandleErr is an unexported func
 func HandleErr(str string, err error) {
 	if err != nil {
 
@@ -51,6 +56,7 @@ func HandleErr(str string, err error) {
 	}
 }
 
+// WriteData is an unexported func
 func WriteData(file *FileUpload) {
 
 	fmt.Println("Write Data to SQLite")
@@ -68,6 +74,7 @@ func WriteData(file *FileUpload) {
 	}
 }
 
+// GetFile is an unexported func
 func GetFile(id string) *FileUpload {
 
 	fmt.Println("Get Data From SQLite")
@@ -104,6 +111,7 @@ func GetFile(id string) *FileUpload {
 	return &file
 }
 
+// GetList is an unexported func
 func GetList() *FileList {
 	var file FileList
 	fmt.Println("<< Get List for SQLite >>")
@@ -353,10 +361,12 @@ func QRCodeHandler(w http.ResponseWriter, req *http.Request) {
 		}
 		// Usage : curl -H "Content-Type: application/json" -X GET -d '{"data":"1101100011;2;04;測試患者;A12****789;500101;;1041204;IC;28;A12;4280#4659#25000#7806#49300#7100#;5684;;AC339291G0;1;QHS;PO;28;AB30119100;1;QID;PO;112;BC23221100;1;QD AM;PO;28;AC444501G0;1;BID;PO;56;BC256961G0;1;QHS;PO;28;BC21571100;1;QD AM;PO;28;"}' http://10.116.136.13:22442/qrcode/abc.jpg -o cde.png
 
-		// stuff2buy := "1101100011;2;04;測試患者;A12****789;500101;;1041204;IC;28;A12;4280#4659#25000#7806#49300#7100#;5684;;AC339291G0;1;QHS;PO;28;AB30119100;1;QID;PO;112;BC23221100;1;QD AM;PO;28;AC444501G0;1;BID;PO;56;BC256961G0;1;QHS;PO;28;BC21571100;1;QD AM;PO;28;"
+		//stuff2buy := "1101100011;2;04;測試患者;A12****789;500101;;1041204;IC;28;A12;4280#4659#25000#7806#49300#7100#;5684;;AC339291G0;1;QHS;PO;28;AB30119100;1;QID;PO;112;BC23221100;1;QD AM;PO;28;AC444501G0;1;BID;PO;56;BC256961G0;1;QHS;PO;28;BC21571100;1;QD AM;PO;28;"
 		stuff2buy := rJSON.Data
 
-		code, err := qr.Encode(stuff2buy, qr.M)
+		code, err := goqr.Encode(stuff2buy, 0, goqr.ECLevelQ)
+		buf := new(bytes.Buffer)
+		err = png.Encode(buf, code)
 
 		if err != nil {
 			fmt.Println(err)
@@ -379,7 +389,7 @@ func QRCodeHandler(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "image/png")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST")
-		if _, err := w.Write(code.PNG()); err != nil {
+		if _, err := w.Write(buf.Bytes()); err != nil {
 			log.Println("unable to write image.")
 		}
 		// w.Write(imgByte)
