@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // <Document>
@@ -54,19 +55,26 @@ type drugInfo struct {
 	Name           string `xml:"商品名"`
 }
 
+func detectEmptyElement(input string) string {
+	if len(strings.TrimSpace(input)) > 0 {
+		return input
+	}
+	return "EMPTY"
+}
+
 func main() {
 	// curl --data "sDate=2000/01/01"  https://wapps.mmh.org.tw/WS_Drug/WebService.asmx/GetDrugInfo_DI
 	resp, err := http.PostForm("https://wapps.mmh.org.tw/WS_Drug/WebService.asmx/GetDrugInfo_DI",
 		url.Values{"sDate": {"2000/01/01"}})
 
 	if err != nil {
-		// handle error
+		fmt.Println("Error XML Server Error :", err)
 	}
 
 	defer resp.Body.Close()
 	xmlFile, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		// handle error
+		fmt.Println("Error Read XML from resp.Body :", err)
 	}
 
 	var q Query
@@ -76,9 +84,7 @@ func main() {
 		return
 	}
 
-	fmt.Println(q)
-
 	for _, DrugInfo := range q.Element {
-		fmt.Println(DrugInfo.ATCCODE, DrugInfo.Name, DrugInfo.Precautions)
+		fmt.Printf("[ATTCCODE]%s [馬偕碼]%s [簡名]%s \n  ==> [商品名-英文]%s \n\n ", detectEmptyElement(DrugInfo.ATCCODE), detectEmptyElement(DrugInfo.MMHCode), detectEmptyElement(DrugInfo.Name), DrugInfo.NameEng)
 	}
 }
