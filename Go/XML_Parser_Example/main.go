@@ -59,7 +59,7 @@ func detectEmptyElement(input string) string {
 	if len(strings.TrimSpace(input)) > 0 {
 		return input
 	}
-	return "EMPTY"
+	return " "
 }
 
 func main() {
@@ -84,7 +84,14 @@ func main() {
 		return
 	}
 
+	fmt.Println()
+
 	for _, DrugInfo := range q.Element {
-		fmt.Printf("[ATTCCODE]%s [馬偕碼]%s [簡名]%s \n  ==> [商品名-英文]%s \n\n ", detectEmptyElement(DrugInfo.ATCCODE), detectEmptyElement(DrugInfo.MMHCode), detectEmptyElement(DrugInfo.Name), DrugInfo.NameEng)
+		fmt.Printf("\n[ATTCCODE]%s [馬偕碼]%s [簡名]%s \n[商品名-英文]%s \n[副作用]\n%s \n ",
+			detectEmptyElement(DrugInfo.ATCCODE),
+			detectEmptyElement(DrugInfo.MMHCode),
+			detectEmptyElement(DrugInfo.Name),
+			detectEmptyElement(DrugInfo.NameEng),
+			detectEmptyElement(DrugInfo.DrugSideEffect))
 	}
 }
