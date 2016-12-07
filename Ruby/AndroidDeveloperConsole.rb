@@ -90,6 +90,8 @@ text = [
 text.each do |line|
    brandName = line
 
+   clickSaveBTN = 0
+
    puts " ----------- Brand Name is #{brandName} ----------------"
 
    #driver = Selenium::WebDriver.for :firefox
@@ -162,17 +164,23 @@ text.each do |line|
       if ariaChecked == "false"
          puts "** #{brandName} ** #{labelName} ** SUPPORT"
          checkboxSapn.click
+         clickSaveBTN = 1
       else
          puts "** #{brandName} ** #{labelName} "
       end
 
    end
 
-   saveBTN = driver.find_element(:xpath => "/html/body/div[8]/div/div/div[2]/div/footer/button")
-   unless !saveBTN.attribute("disabled").nil?
+   if clickSaveBTN == 1 then
+      saveBTN = driver.find_element(:xpath => "/html/body/div[7]/div/div/div[2]/div/footer/button")
       saveBTN.click
-
    end
+
+   ## saveBTN = driver.find_element(:xpath => "/html/body/div[7]/div/div/div[2]/div/footer/button").first
+   ## unless !saveBTN.attribute("disabled").nil?
+   ##   saveBTN.click
+   ##
+   ##end
 
    sleep 10
 
