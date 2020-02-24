@@ -23,5 +23,5 @@ func main() {
 		fmt.Printf("%s\n", err)
 		return
 	}
-	fmt.Printf("MSG SENT channel %s at %s , Message %s ", channelID, timestamp, slackMessage)
+	fmt.Printf("MSG SENT channel %s at %s , Message %s \n", channelID, timestamp, slackMessage)
 }
