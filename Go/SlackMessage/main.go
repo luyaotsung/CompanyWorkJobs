@@ -18,7 +18,7 @@ func main() {
 		slackMessage += " Empty Message"
 	}
 
-	channelID, timestamp, err := api.PostMessage("CHANNEL-ID", slack.MsgOptionText(slackMessage, false))
+	channelID, timestamp, err := api.PostMessage("SLACK-CHANNEL-ID", slack.MsgOptionText(slackMessage, false))
 	if err != nil {
 		fmt.Printf("%s\n", err)
 		return
